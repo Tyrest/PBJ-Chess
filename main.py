@@ -8,6 +8,8 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 import math
 import chess
+import random
+import time
 
 class MCTS:
     "Monte Carlo tree searcher. First rollout the tree then choose a move."
@@ -127,17 +129,56 @@ class Node(ABC):
         "Nodes must be comparable"
         return True
 
-class tybot():
+class ChessNode(Node):
     def __init__(self, gamestate=chess.STARTING_FEN):
         self.board = chess.Board(gamestate)
+        self.children = set()
+        for move in self.board.legal_moves:
+            children.add(ChessNode(self.board.push(move).fen()))
+            self.board.pop()
+
+    def find_children(self):
+        return self.children
+
+    def find_random_child(self):
+        return random.choise(self.children)
+
+    def is_terminal(self):
+        return len(self.children) == 0
+
+    def reward(self):
+        winc = self.board.outcome().winner
+        if winc == None:
+            return 0.5
+        elif winc == chess.WHITE:
+            return 1
+        else:
+            return 0
+
+    def __hash__(self):
+        return hash(board.fen())
+
+    def __eq__(node1):
+        return self.board.fen() == node1.board.fen()
+
+class tybot:
+    def __init__(self, gamestate=chess.STARTING_FEN):
+        self.board = chess.Board(gamestate)
+
+    def update_fen(fen):
+        self.board.set_fen(fen)
     
-    def choose_move():
-        return self.monte_carlo_tree_search(self.gamestate)
+    def move():
+        return self.monte_carlo_tree_search(self.gamestate).board.fen()
     
     def monte_carlo_tree_search(root):
         tree = MCTS()
-        while resources_left(time, computational power):
-            # rollout first
-            # choose node to rollout after
-          
-    return best_child(root)
+        root = ChessNode(self.board.fen())
+        start_time = time.time()
+        while time.time() - start_time < 5:
+            tree.do_rollout()
+        return tree.choose()
+
+board = chess.Board()
+while board.outcome() == None:
+    print(board)
