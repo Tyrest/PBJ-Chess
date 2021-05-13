@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 import math
 import chess
+import chess.svg
 import random
 import time
 
@@ -130,55 +131,104 @@ class Node(ABC):
         return True
 
 class ChessNode(Node):
-    def __init__(self, gamestate=chess.STARTING_FEN):
+    def __init__(self, gamestate=chess.STARTING_FEN, last_move=""):
         self.board = chess.Board(gamestate)
+        self.last_move = last_move
         self.children = set()
-        for move in self.board.legal_moves:
-            children.add(ChessNode(self.board.push(move).fen()))
-            self.board.pop()
 
     def find_children(self):
+        for move in self.board.legal_moves:
+            self.board.push(move)
+            self.children.add(ChessNode(self.board.fen(), move))
+            self.board.pop()
         return self.children
 
     def find_random_child(self):
-        return random.choise(self.children)
+        move = random.choice(list(self.board.legal_moves))
+        self.board.push(move)
+        new_node = ChessNode(self.board.fen(), move)
+        self.children.add(new_node)
+        self.board.pop()
+        return new_node
 
     def is_terminal(self):
-        return len(self.children) == 0
+        return self.board.result() != "*"
 
     def reward(self):
-        winc = self.board.outcome().winner
-        if winc == None:
+        # print(str(self.board) + "\n")
+        outcome = self.board.result()
+        if outcome == "1/2-1/2":
             return 0.5
-        elif winc == chess.WHITE:
-            return 1
         else:
             return 0
 
     def __hash__(self):
-        return hash(board.fen())
+        return hash(self.board.fen())
 
-    def __eq__(node1):
+    def __eq__(self, node1):
         return self.board.fen() == node1.board.fen()
 
-class tybot:
+class TyBot:
     def __init__(self, gamestate=chess.STARTING_FEN):
         self.board = chess.Board(gamestate)
 
-    def update_fen(fen):
+    def update_fen(self, fen):
         self.board.set_fen(fen)
     
-    def move():
-        return self.monte_carlo_tree_search(self.gamestate).board.fen()
+    # Should return the move the bot chooses
+    def move(self):
+        return self.monte_carlo_tree_search().last_move
     
-    def monte_carlo_tree_search(root):
+    def monte_carlo_tree_search(self):
         tree = MCTS()
         root = ChessNode(self.board.fen())
         start_time = time.time()
-        while time.time() - start_time < 5:
-            tree.do_rollout()
-        return tree.choose()
+        while time.time() - start_time < 20:
+            tree.do_rollout(root)
+        return tree.choose(root)
 
-board = chess.Board()
-while board.outcome() == None:
-    print(board)
+def render(board):
+    boardsvg = chess.svg.board(board)
+    f = open("board.SVG", "w")
+    f.write(boardsvg)
+    f.close()
+
+def botvbot():
+    board = chess.Board()
+    bot = TyBot()
+
+    while board.result() == "*":
+        render(board)
+        print(str(board) + "\n")
+
+        board.push(bot.move())
+        bot.update_fen(board.fen())
+    
+    render(board)
+    print(board.result())
+
+def botvplayer():
+    board = chess.Board()
+    bot = TyBot()
+
+    if input("color? (W or B): ") == "B":
+        print(board)
+        board.push(bot.move())
+
+    while board.result() == "*":
+        print(board)
+
+        move = input("Input your move: ")
+        board.push_san(move)
+        bot.update_fen(board.fen())
+
+        print(board)
+
+        board.push(bot.move())
+
+
+def main():
+    botvbot()
+
+if __name__ == "__main__":
+    main()
