@@ -33,6 +33,9 @@ class MCTS:
             if self.N[n] == 0:
                 return float("-inf")  # avoid unseen moves
             return self.Q[n] / self.N[n]  # average reward
+        
+        for child in self.children[node]:
+            print("{}: {}".format(child.last_move, score(child)))
 
         return max(self.children[node], key=score)
 
@@ -61,19 +64,16 @@ class MCTS:
 
     def _expand(self, node):
         "Update the `children` dict with the children of `node`"
-        if node in self.children:
-            return  # already expanded
-        self.children[node] = node.find_children()
+        if node not in self.children:
+            self.children[node] = node.find_children()
 
+    # This is where the code spends most of its time
+    # Try to optimize this???
     def _simulate(self, node):
+        # wins = 0
+        # for i in range(69):
         "Returns the reward for a random simulation (to completion) of `node`"
-        invert_reward = True
-        while True:
-            if node.is_terminal():
-                reward = node.reward()
-                return 1 - reward if invert_reward else reward
-            node = node.find_random_child()
-            invert_reward = not invert_reward
+        return node.simulate()
 
     def _backpropagate(self, path, reward):
         "Send the reward back up to the ancestors of the leaf"
@@ -106,8 +106,8 @@ class Node(ABC):
         return set()
 
     @abstractmethod
-    def find_random_child(self):
-        "Random successor of this board state (for more efficient simulation)"
+    def simulate(self):
+        "Simulates the board till the end or till a set depth is passed"
         return None
 
     @abstractmethod
@@ -143,24 +143,50 @@ class ChessNode(Node):
             self.board.pop()
         return self.children
 
-    def find_random_child(self):
-        move = random.choice(list(self.board.legal_moves))
-        self.board.push(move)
-        new_node = ChessNode(self.board.fen(), move)
-        self.children.add(new_node)
-        self.board.pop()
-        return new_node
+    def simulate(self):
+        invert_reward = True
+        initial_fen = self.board.fen()
+        count = 0
+        while not self.is_terminal():
+            self.board.push(random.choice(list(self.board.legal_moves)))
+            invert_reward = not invert_reward
+            if count >= 10:
+                score = self.eval()
+                self.board.set_fen(initial_fen)
+                return score
+            count += 1
+        self.board.set_fen(initial_fen)
+        reward = self.reward()
+        return 1-reward if invert_reward else reward
 
     def is_terminal(self):
         return self.board.result() != "*"
 
+    def eval(self):
+        # Evaluates for white
+        # Reverses if black's turn
+        white = 0
+        total = 0
+        values = {'P': 1, 'N': 3, 'B': 3, 'R': 5, 'Q': 9, 'K': 0}
+        for c in self.board.board_fen():
+            if c.isalpha():
+                if c in values:
+                    white += values[c]
+                total += values[c.upper()]
+            
+        score = white / total
+        return score if self.board.turn else 1-score
+
     def reward(self):
         # print(str(self.board) + "\n")
-        outcome = self.board.result()
-        if outcome == "1/2-1/2":
-            return 0.5
+        if self.is_terminal():
+            outcome = self.board.result()
+            if outcome == "1/2-1/2":
+                return 0.5
+            else:
+                return 0
         else:
-            return 0
+            return self.eval()
 
     def __hash__(self):
         return hash(self.board.fen())
@@ -180,11 +206,14 @@ class TyBot:
         return self.monte_carlo_tree_search().last_move
     
     def monte_carlo_tree_search(self):
-        tree = MCTS()
+        tree = MCTS(0.5)
         root = ChessNode(self.board.fen())
         start_time = time.time()
+        count = 0
         while time.time() - start_time < 20:
             tree.do_rollout(root)
+            count += 1
+        print("rollouts: {}".format(count))
         return tree.choose(root)
 
 def render(board):
@@ -211,24 +240,66 @@ def botvplayer():
     board = chess.Board()
     bot = TyBot()
 
+    turn = 0
+
     if input("color? (W or B): ") == "B":
-        print(board)
-        board.push(bot.move())
+        turn = 1
 
     while board.result() == "*":
-        print(board)
+        render(board)
+        if not turn:
+            valid_moves = [str(x) for x in list(board.legal_moves)]
 
-        move = input("Input your move: ")
-        board.push_san(move)
-        bot.update_fen(board.fen())
+            print("Legal moves are: {}".format(valid_moves))
+            move = input("Input your move: ")
+            while move not in valid_moves:
+                print("Legal moves are: {}".format(valid_moves))
+                move = input("Please input a legal move: ")
+            board.push_uci(move)
+            bot.update_fen(board.fen())
+        else:
+            move = bot.move()
+            board.push(move)
+            print(move)
+        turn = 1 - turn
 
-        print(board)
+def nextmove(fen):
+    board = chess.Board(fen)
+    render(board)
+    bot = TyBot(fen)
+    move = bot.move()
+    board.push(move)
+    print(move)
+    render(board)
+    return(move)
 
-        board.push(bot.move())
+def test1move():
+    nextmove("4k3/R7/1R6/8/8/8/8/4K3 w - - 0 1")
+    time.sleep(2)
+    nextmove("4k3/8/4K3/6Q1/8/8/8/8 w - - 0 1")
+    time.sleep(2)
+    nextmove("4k3/P7/4K3/8/8/8/8/8 w - - 0 1")
+    time.sleep(2)
+    nextmove("4k3/8/8/8/8/1r6/r7/4K3 b - - 0 1")
 
+def test2move():
+    nextmove("4k3/R7/4K3/8/5b2/8/8/8 w - - 0 1") #a7a8
+    time.sleep(2)
+    nextmove("r6k/pp1b2p1/3Np2p/8/3p1PRQ/2nB4/q1P4P/2K5 w - - 0 1") # h4h6
+    time.sleep(2)
+    nextmove("R1Q5/1p3p2/1k1qpb2/8/P2p4/P2P2P1/4rPK1/8 w - - 0 1") # a4a5
+    time.sleep(2)
+    nextmove("r6k/6pp/6n1/1p2pR2/3q4/1B5Q/P1P3P1/1K6 w - - 0 1") # h3h7
+    time.sleep(2)
+    nextmove("rnbq2kr/ppp3pp/4P2n/3p2NQ/4p3/B1P5/P1P2PPP/R3KB1R w K - 0 1") # h5f7
+    time.sleep(2)
+    nextmove("4k3/8/3K1R2/8/5P2/8/8/8 w - - 0 1")
 
 def main():
-    botvbot()
+    # botvbot()
+    botvplayer()
+    # test1move()
+    # test2move()
 
 if __name__ == "__main__":
     main()
