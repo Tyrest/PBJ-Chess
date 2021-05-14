@@ -262,6 +262,8 @@ def botvplayer():
             board.push(move)
             print(move)
         turn = 1 - turn
+    render(board)
+    print(board.result())
 
 def nextmove(fen):
     board = chess.Board(fen)
@@ -297,9 +299,9 @@ def test2move():
 
 def main():
     # botvbot()
-    # botvplayer()
+    botvplayer()
     # test1move()
-    test2move()
+    # test2move()
 
 if __name__ == "__main__":
     main()
