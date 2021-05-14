@@ -167,7 +167,7 @@ class ChessNode(Node):
         # Reverses if black's turn
         white = 0
         total = 0
-        values = {'P': 1, 'N': 3, 'B': 3, 'R': 5, 'Q': 9, 'K': 0}
+        values = {'P': 1, 'N': 3, 'B': 3, 'R': 5, 'Q': 9, 'K': 1}
         for c in self.board.board_fen():
             if c.isalpha():
                 if c in values:
@@ -206,7 +206,7 @@ class TyBot:
         return self.monte_carlo_tree_search().last_move
     
     def monte_carlo_tree_search(self):
-        tree = MCTS(0.5)
+        tree = MCTS()
         root = ChessNode(self.board.fen())
         start_time = time.time()
         count = 0
@@ -297,9 +297,9 @@ def test2move():
 
 def main():
     # botvbot()
-    botvplayer()
+    # botvplayer()
     # test1move()
-    # test2move()
+    test2move()
 
 if __name__ == "__main__":
     main()
