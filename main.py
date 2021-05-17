@@ -3,6 +3,7 @@ import chess.svg
 import time
 
 from agent1 import TyBot
+from agent2 import TyBotNM
 
 def render(board):
     boardsvg = chess.svg.board(board)
@@ -10,7 +11,8 @@ def render(board):
     f.write(boardsvg)
     f.close()
 
-def botvbot():
+def MCTSmirror():
+    print("MCTS Bot Mirror Match\n=====================")
     board = chess.Board()
     bot = TyBot()
 
@@ -23,6 +25,46 @@ def botvbot():
         bot.update_fen(board.fen())
         print(move)
     
+    render(board)
+    print(board.result())
+
+def NMmirror():
+    print("Negamax Bot Mirror Match\n========================")
+    board = chess.Board()
+    bot = TyBotNM()
+
+    while board.result() == "*":
+        render(board)
+        move = bot.move(board)
+        board.push(move)
+        print(move)
+    
+    render(board)
+    print(board.result())
+
+def botvbot():
+    print("Negamax vs MCTS\n===============")
+    board = chess.Board()
+    MCTSbot = TyBot()
+    NMbot = TyBotNM()
+
+    turn = 1
+
+    if input("MCTS color? (W or B): ") == "B":
+        turn = 0
+
+    while board.result() == "*":
+        render(board)
+        if not turn:
+            move = NMbot.move(board)
+            board.push(move)
+            print(move)
+            MCTSbot.update_fen(board.fen())
+        else:
+            move = MCTSbot.move()
+            board.push(move)
+            print(move)
+        turn = 1 - turn
     render(board)
     print(board.result())
 
@@ -58,12 +100,12 @@ def botvplayer():
 def nextmove(fen):
     board = chess.Board(fen)
     render(board)
-    bot = TyBot(fen)
-    move = bot.move()
+    bot = TyBotNM()
+    move = bot.move(board)
     board.push(move)
     print(move)
     render(board)
-    return(move)
+    return move
 
 def test1move():
     nextmove("4k3/R7/1R6/8/8/8/8/4K3 w - - 0 1")
@@ -89,8 +131,9 @@ def test2move():
 
 def main():
     # botvbot()
-    botvplayer()
-    # test1move()
+    # botvbotNM()
+    # botvplayer()
+    test1move()
     # test2move()
 
 if __name__ == "__main__":

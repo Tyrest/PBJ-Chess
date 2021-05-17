@@ -33,8 +33,8 @@ class MCTS:
                 return float("-inf")  # avoid unseen moves
             return self.Q[n] / self.N[n]  # average reward
         
-        for child in self.children[node]:
-            print("{}: {}".format(child.last_move, score(child)))
+        # for child in self.children[node]:
+        #     print("{}: {}".format(child.last_move, score(child)))
 
         return max(self.children[node], key=score)
 
@@ -214,5 +214,5 @@ class TyBot:
         while time.time() - start_time < 20:
             tree.do_rollout(root)
             count += 1
-        print("rollouts: {}".format(count))
+        # print("rollouts: {}".format(count))
         return tree.choose(root)
