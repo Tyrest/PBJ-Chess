@@ -1,6 +1,7 @@
 import chess
 import chess.svg
 import time
+import math
 
 from agent1 import TyBot
 from agent2 import TyBotNM
@@ -70,7 +71,7 @@ def botvbot():
 
 def botvplayer():
     board = chess.Board()
-    bot = TyBot()
+    bot = TyBotNM()
 
     turn = 0
 
@@ -88,9 +89,11 @@ def botvplayer():
                 print("Legal moves are: {}".format(valid_moves))
                 move = input("Please input a legal move: ")
             board.push_uci(move)
-            bot.update_fen(board.fen())
+            # bot.update_fen(board.fen())
         else:
-            move = bot.move()
+            t0 = time.time()
+            move = bot.move(board)
+            print("time to move: {}".format(round(time.time()-t0), 2))
             board.push(move)
             print(move)
         turn = 1 - turn
@@ -133,8 +136,8 @@ def main():
     # botvbot()
     # botvbotNM()
     # botvplayer()
-    test1move()
-    # test2move()
+    # test1move()
+    test2move()
 
 if __name__ == "__main__":
     main()
