@@ -1,4 +1,5 @@
 import chess
+import random
 
 class TyBotNM:
     def __init__(self, gamestate=chess.STARTING_FEN, depth=4):
@@ -30,8 +31,8 @@ class TyBotNM:
             if c.isalpha() and c in values:
                 score += values[c]
         
-        # if board.is_check():
-        #     score += 0.1 if board.turn else -0.1
+        if board.is_check():
+            score += -0.1 if board.turn else 0.1
 
         # To add
         # Knights near the center of the board 0.1
@@ -54,7 +55,7 @@ class TyBotNM:
 
         # moves = self.order_moves(board, board.legal_moves)
         moves = board.legal_moves
-        best = next(iter(moves))
+        best_moves = []
         value = -1e8
         for move in moves:
             board.push(move)
@@ -63,13 +64,15 @@ class TyBotNM:
             board.pop()
             if depth == self.depth:
                 print("{}{}: {}".format("|"*(4-depth), move, score))
+            if score == value:
+                best_moves.append(move)
             if score > value:
                 value = score
-                best = move
+                best_moves = [move]
             a = max(a, value)
             if a >= b:
                 break
-        return value, best
+        return value, random.choice(best_moves)
     
     def move(self, board):
         best_move = next(iter(board.legal_moves))

@@ -135,9 +135,9 @@ def test2move():
 def main():
     # botvbot()
     # botvbotNM()
-    # botvplayer()
+    botvplayer()
     # test1move()
-    test2move()
+    # test2move()
 
 if __name__ == "__main__":
     main()
