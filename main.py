@@ -1,7 +1,6 @@
 import chess
 import chess.svg
 import time
-import math
 
 from agent1 import TyBot
 from agent2 import TyBotNM
@@ -47,7 +46,7 @@ def botvbot():
     print("Negamax vs MCTS\n===============")
     board = chess.Board()
     MCTSbot = TyBot()
-    NMbot = TyBotNM()
+    NMbot = TyBotNM(depth=3)
 
     turn = 1
 
@@ -56,6 +55,7 @@ def botvbot():
 
     while board.result() == "*":
         render(board)
+        t0 = time.time()
         if not turn:
             move = NMbot.move(board)
             board.push(move)
@@ -65,13 +65,14 @@ def botvbot():
             move = MCTSbot.move()
             board.push(move)
             print(move)
+        print("time to move: {}".format(round(time.time()-t0, 2)))
         turn = 1 - turn
     render(board)
     print(board.result())
 
 def botvplayer():
     board = chess.Board()
-    bot = TyBotNM()
+    bot = TyBotNM(depth=3)
 
     turn = 0
 
@@ -93,7 +94,7 @@ def botvplayer():
         else:
             t0 = time.time()
             move = bot.move(board)
-            print("time to move: {}".format(round(time.time()-t0), 2))
+            print("time to move: {}".format(round(time.time()-t0, 2)))
             board.push(move)
             print(move)
         turn = 1 - turn
@@ -103,7 +104,7 @@ def botvplayer():
 def nextmove(fen):
     board = chess.Board(fen)
     render(board)
-    bot = TyBotNM()
+    bot = TyBotNM(depth=3)
     move = bot.move(board)
     board.push(move)
     print(move)

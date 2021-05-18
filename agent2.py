@@ -15,6 +15,9 @@ class TyBotNM:
             return next(iter(self.board.legal_moves))
         return self.monte_carlo_tree_search().last_move
 
+    def center_knights(self, board):
+        return 0
+
     def eval(self, board):
         result = board.result()
         if result == "1/2-1/2":
@@ -31,10 +34,11 @@ class TyBotNM:
             if c.isalpha() and c in values:
                 score += values[c]
         
-        if board.is_check():
-            score += -0.1 if board.turn else 0.1
+        # if board.is_check():
+        #     score += -0.1 if board.turn else 0.1
 
         # To add
+        # score += self.center_knights(board)
         # Knights near the center of the board 0.1
         # Kings in the back rank in the early game 0.1
         # Attacking the queen? 0.2
@@ -51,7 +55,7 @@ class TyBotNM:
 
     def negamax(self, board, depth, a, b, color):
         if depth == 0 or board.result() != '*':
-            return color * self.eval(board), None
+            return color * self.eval(board) - depth * 100, None
 
         # moves = self.order_moves(board, board.legal_moves)
         moves = board.legal_moves
@@ -60,18 +64,17 @@ class TyBotNM:
         for move in moves:
             board.push(move)
             score = -int(self.negamax(board, depth-1, -b, -a, -color)[0])
-            score += depth/100
             board.pop()
             if depth == self.depth:
-                print("{}{}: {}".format("|"*(4-depth), move, score))
+                print("{}{}: {}".format("|"*(self.depth-depth), move, score))
             if score == value:
                 best_moves.append(move)
             if score > value:
                 value = score
                 best_moves = [move]
-            a = max(a, value)
-            if a >= b:
-                break
+            # a = max(a, value)
+            # if a >= b:
+            #     break
         return value, random.choice(best_moves)
     
     def move(self, board):

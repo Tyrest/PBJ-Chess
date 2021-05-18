@@ -211,7 +211,7 @@ class TyBot:
         root = ChessNode(self.board.fen())
         start_time = time.time()
         count = 0
-        while time.time() - start_time < 20:
+        while time.time() - start_time < 10:
             tree.do_rollout(root)
             count += 1
         # print("rollouts: {}".format(count))
