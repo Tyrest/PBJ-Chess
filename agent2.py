@@ -16,16 +16,18 @@ class TyBotNM:
         return self.monte_carlo_tree_search().last_move
 
     def center_knights(self, board):
+
         return 0
 
     def eval(self, board):
         result = board.result()
-        if result == "1/2-1/2":
-            return 0
-        elif result[0] == "0":
-            return -1e8
-        elif result[0] == "1":
-            return 1e8
+        if result != '*':
+            if result == "1/2-1/2":
+                return 0
+            elif result[0] == "0":
+                return -1e4
+            elif result[0] == "1":
+                return 1e4
         
         score = 0
         values = {'P': 1, 'N': 3, 'B': 3, 'R': 5, 'Q': 9, 'K': 1,\
@@ -33,15 +35,11 @@ class TyBotNM:
         for c in board.board_fen():
             if c.isalpha() and c in values:
                 score += values[c]
-        
-        # if board.is_check():
-        #     score += -0.1 if board.turn else 0.1
 
         # To add
-        # score += self.center_knights(board)
         # Knights near the center of the board 0.1
+        score += self.center_knights(board)
         # Kings in the back rank in the early game 0.1
-        # Attacking the queen? 0.2
         
         return score if self.board.turn else 1-score
 
@@ -53,20 +51,20 @@ class TyBotNM:
             return score
         return sorted(moves, key=eval_move)
 
-    def negamax(self, board, depth, a, b, color):
+    def negamax(self, board, depth, color):
         if depth == 0 or board.result() != '*':
             return color * self.eval(board) - depth * 100, None
 
         # moves = self.order_moves(board, board.legal_moves)
         moves = board.legal_moves
         best_moves = []
-        value = -1e8
+        value = -1e5
         for move in moves:
             board.push(move)
-            score = -int(self.negamax(board, depth-1, -b, -a, -color)[0])
+            score = -int(self.negamax(board, depth-1, -color)[0])
             board.pop()
-            if depth == self.depth:
-                print("{}{}: {}".format("|"*(self.depth-depth), move, score))
+            # if depth == self.depth:
+            #     print("{}{}: {}".format("|"*(self.depth-depth), move, score))
             if score == value:
                 best_moves.append(move)
             if score > value:
@@ -78,12 +76,11 @@ class TyBotNM:
         return value, random.choice(best_moves)
     
     def move(self, board):
-        best_move = next(iter(board.legal_moves))
         if len(list(board.legal_moves)) == 1:
-            return best_move
+            return 69, next(iter(board.legal_moves))
         
         color = 1 if board.turn else -1
-        return self.negamax(board, self.depth, -1e9, 1e9, color)[1]
+        return self.negamax(board, self.depth, color)
 
 
 # Initial call for Player A's root node

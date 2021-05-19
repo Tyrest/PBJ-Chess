@@ -84,7 +84,7 @@ def botvplayer():
         if not turn:
             valid_moves = [str(x) for x in list(board.legal_moves)]
 
-            print("Legal moves are: {}".format(valid_moves))
+            # print("Legal moves are: {}".format(valid_moves))
             move = input("Input your move: ")
             while move not in valid_moves:
                 print("Legal moves are: {}".format(valid_moves))
@@ -93,10 +93,10 @@ def botvplayer():
             # bot.update_fen(board.fen())
         else:
             t0 = time.time()
-            move = bot.move(board)
-            print("time to move: {}".format(round(time.time()-t0, 2)))
+            value, move = bot.move(board)
             board.push(move)
-            print(move)
+            print("{}: {}".format(move, value))
+            print("time to move: {}".format(round(time.time()-t0, 2)))
         turn = 1 - turn
     render(board)
     print(board.result())
@@ -105,9 +105,9 @@ def nextmove(fen):
     board = chess.Board(fen)
     render(board)
     bot = TyBotNM(depth=3)
-    move = bot.move(board)
+    value, move = bot.move(board)
     board.push(move)
-    print(move)
+    print("{}: {}".format(move, value))
     render(board)
     return move
 
