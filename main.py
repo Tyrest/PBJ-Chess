@@ -57,9 +57,9 @@ def botvbot():
         render(board)
         t0 = time.time()
         if not turn:
-            move = NMbot.move(board)
+            value, move = NMbot.move(board)
             board.push(move)
-            print(move)
+            print("{}: {}".format(move, value))
             MCTSbot.update_fen(board.fen())
         else:
             move = MCTSbot.move()
@@ -134,9 +134,9 @@ def test2move():
     nextmove("4k3/8/3K1R2/8/5P2/8/8/8 w - - 0 1")
 
 def main():
-    # botvbot()
+    botvbot()
     # botvbotNM()
-    botvplayer()
+    # botvplayer()
     # test1move()
     # test2move()
 
