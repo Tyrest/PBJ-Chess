@@ -11,6 +11,14 @@ def render(board):
     f.write(boardsvg)
     f.close()
 
+def NMmove(bot, board):
+    t0 = time.time()
+    value, move = bot.move(board)
+    print("time to move: {}".format(round(time.time()-t0, 2)))
+    print("{}: {}".format(move, value))
+    board.push(move)
+    return board
+
 def MCTSmirror():
     print("MCTS Bot Mirror Match\n=====================")
     board = chess.Board()
@@ -31,13 +39,11 @@ def MCTSmirror():
 def NMmirror():
     print("Negamax Bot Mirror Match\n========================")
     board = chess.Board()
-    bot = TyBotNM()
+    bot = TyBotNM(depth=3)
 
-    while board.result() == "*":
+    while board.result(claim_draw=True) == "*":
         render(board)
-        move = bot.move(board)
-        board.push(move)
-        print(move)
+        board = NMmove(bot, board)
     
     render(board)
     print(board.result())
@@ -57,15 +63,13 @@ def botvbot():
         render(board)
         t0 = time.time()
         if not turn:
-            value, move = NMbot.move(board)
-            board.push(move)
-            print("{}: {}".format(move, value))
+            board = NMmove(NMbot, board)
             MCTSbot.update_fen(board.fen())
         else:
             move = MCTSbot.move()
             board.push(move)
             print(move)
-        print("time to move: {}".format(round(time.time()-t0, 2)))
+            print("time to move: {}".format(round(time.time()-t0, 2)))
         turn = 1 - turn
     render(board)
     print(board.result())
@@ -92,11 +96,7 @@ def botvplayer():
             board.push_uci(move)
             # bot.update_fen(board.fen())
         else:
-            t0 = time.time()
-            value, move = bot.move(board)
-            board.push(move)
-            print("{}: {}".format(move, value))
-            print("time to move: {}".format(round(time.time()-t0, 2)))
+            board = NMmove(bot, board)
         turn = 1 - turn
     render(board)
     print(board.result())
@@ -105,11 +105,8 @@ def nextmove(fen):
     board = chess.Board(fen)
     render(board)
     bot = TyBotNM(depth=3)
-    value, move = bot.move(board)
-    board.push(move)
-    print("{}: {}".format(move, value))
+    board = NMmove(bot, board)
     render(board)
-    return move
 
 def test1move():
     nextmove("4k3/R7/1R6/8/8/8/8/4K3 w - - 0 1")
@@ -134,9 +131,9 @@ def test2move():
     nextmove("4k3/8/3K1R2/8/5P2/8/8/8 w - - 0 1")
 
 def main():
-    botvbot()
-    # botvbotNM()
-    # botvplayer()
+    # botvbot()
+    # NMmirror()
+    botvplayer()
     # test1move()
     # test2move()
 
