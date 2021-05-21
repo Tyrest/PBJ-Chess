@@ -132,8 +132,8 @@ def test2move():
 
 def main():
     # botvbot()
-    # NMmirror()
-    botvplayer()
+    NMmirror()
+    # botvplayer()
     # test1move()
     # test2move()
 

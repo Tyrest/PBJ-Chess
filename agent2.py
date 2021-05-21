@@ -1,10 +1,12 @@
 import chess
 import random
+from collections import defaultdict
 
 class TyBotNM:
     def __init__(self, gamestate=chess.STARTING_FEN, depth=4):
         self.board = chess.Board(gamestate)
         self.depth = depth
+        self.dict = defaultdict(int)
 
     def update_fen(self, fen):
         self.board.set_fen(fen)
@@ -23,7 +25,7 @@ class TyBotNM:
         if 'n' in positions:
             for pos in positions['n']:
                 score -= 7 - (abs(4.5 - pos[0]) + abs(4.5 - pos[1]))
-        return score / 2 # convert to centipawns
+        return score / 3 # convert to centipawns
 
     def king_safety(self, positions):
         score = 0
@@ -35,10 +37,10 @@ class TyBotNM:
         score = 0
         if 'P' in positions:
             for pos in positions['P']:
-                score += 6 - pos[0]
+                score += 2 ** (5 - pos[0])
         if 'p' in positions:
             for pos in positions['p']:
-                score -= pos[0] - 1
+                score -= 2 ** (pos[0] - 2)
         return score # convert to centipawns
     
     def center_control(self, legal_moves, turn):
@@ -63,6 +65,8 @@ class TyBotNM:
                 return 1e4
         
         board_fen = board.board_fen()
+        if board_fen in self.dict:
+            return self.dict[board_fen]
         score = 0
         col = 0
         row = 0
@@ -88,9 +92,9 @@ class TyBotNM:
         score += self.center_knights(positions)
         score += self.king_safety(positions)
         score += self.pawn_aggression(positions)
-        score += self.center_control(board.legal_moves, board.turn)
+        # score += self.center_control(board.legal_moves, board.turn)
         # Kings in the back rank in the early game 0.1
-        
+        self.dict.update({board_fen: score})
         return score
 
     def order_moves(self, board, moves):
